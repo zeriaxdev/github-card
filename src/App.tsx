@@ -1,32 +1,92 @@
 import { ReactElement, useEffect, useState } from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
+import { BsMoonFill, BsSunFill } from "react-icons/bs";
 import * as htmlToImage from "html-to-image";
 import axios from "axios";
 import "./App.css";
 
+const truncateString = (str: string, len: number) => {
+  if (str) {
+    if (str.length > len) {
+      if (len <= 3) {
+        return str.slice(0, len - 3) + "...";
+      } else {
+        return str.slice(0, len) + "...";
+      }
+    } else {
+      return str;
+    }
+  }
+  return str;
+};
+
+const isDarkMode = () => {
+  return (
+    localStorage.theme === "dark" ||
+    (!("theme" in localStorage) &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
+};
+
 const DownloadBtn: React.FC<{
   title?: string;
   icon?: ReactElement;
-}> = ({ title, icon }) => {
+  username: string;
+}> = ({ title, icon, username }) => {
   return (
-    <div className="m-3">
+    <div className="mx-1 my-3">
       <button
         className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg
-                  inline-flex items-center flex-row dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
+                  inline-flex dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
         onClick={() => {
           htmlToImage
             .toPng(document.getElementById("github") as HTMLElement)
             .then(function (dataUrl) {
               var link = document.createElement("a");
-              link.download = "github-graph.png";
+              link.download = `${username ? username : "github"}.png`;
               link.href = dataUrl;
               console.log(dataUrl);
               link.click();
             });
         }}
       >
-        {icon ? icon : <AiOutlineCloudDownload className="mr-2 h-5 w-5" />}
+        {icon ? (
+          icon
+        ) : (
+          <AiOutlineCloudDownload className="mr-2 h-5 w-5 place-self-center" />
+        )}
         {title ? title : "Download"}
+      </button>
+    </div>
+  );
+};
+
+const DarkModeBtn: React.FC = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  return (
+    <div className="mx-1 my-3">
+      <button
+        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg
+        inline-flex dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
+        onClick={() => {
+          setDarkMode(!darkMode);
+          localStorage.theme = darkMode ? "light" : "dark";
+
+          if (isDarkMode()) {
+            document.body.classList.add("dark");
+            localStorage.theme = "dark";
+          } else {
+            document.body.classList.remove("dark");
+            localStorage.theme = "light";
+          }
+        }}
+      >
+        {darkMode ? (
+          <BsMoonFill className="h-6 place-self-center" />
+        ) : (
+          <BsSunFill className="h-6 place-self-center" />
+        )}
       </button>
     </div>
   );
@@ -114,7 +174,7 @@ const Github: React.FC<{
                 {data.login}
               </a>
               <div>
-                <a className="self-stretch flex-shrink-0 w-[310px] text-[15px] text-center text-[#78858f]">
+                <a className="self-stretch flex-shrink-0 w-[310px] text-[15px] text-center font-medium text-gray-500">
                   {data.location
                     ? data.location
                     : "everywhere at the end of time"}
@@ -142,13 +202,9 @@ const Github: React.FC<{
           </a>
         )}
         {data.type !== "User" ? (
-          <p className="flex-grow-0 flex-shrink-0 text-[17px] font-bold text-center">
-            <span className="flex-grow-0 flex-shrink-0 text-[17px] font-bold text-center">
-              0
-            </span>
-            <br />
-            <span className="flex-grow-0 flex-shrink-0 text-[17px] font-bold text-center">
-              in the last year
+          <p className="flex-grow-0 flex-shrink-0 text-[17px] font-medium text-center">
+            <span className="flex-grow-0 flex-shrink-0 text-[17px] font-medium text-center">
+              {data.bio ? truncateString(data.bio, 55) : "no bio"}
             </span>
           </p>
         ) : contribs ? (
@@ -188,7 +244,7 @@ export default function App() {
   return (
     <div>
       <div
-        className="flex-col w-full justify-center items-start flex-grow-0 flex-shrink-0 text-center
+        className="flex-row w-full justify-center items-start flex-grow-0 flex-shrink-0 text-center
           place-content-center grid h-screen bg-gray-100 dark:bg-zinc-900/95 text-gray-900 dark:text-white"
       >
         {user ? (
@@ -196,13 +252,21 @@ export default function App() {
             <div>
               <Github user={user} />
             </div>
-            <div>
-              <DownloadBtn title="download png" />
+            <div className="inline-flex flex-grow-0 flex-shrink-0 text-center">
+              <DarkModeBtn />
+              <DownloadBtn title={`${user}.png`} username={user} />
             </div>
           </div>
         ) : (
           <div>
-            <form className="flex flex-col justify-center items-center self-stretch flex-grow-0 flex-shrink-0 relative gap-1.5 p-[25px]">
+            <form
+              onSubmit={() => {
+                setUser(value);
+                window.location.href = `?username=${user}`;
+              }}
+              className="flex flex-col justify-center items-center self-stretch flex-grow-0 flex-shrink-0 relative gap-1.5 p-[25px]"
+              action={`?username${user}`}
+            >
               <p className="text-sm text-gray-500 dark:text-zinc-500 absolute -top-1">
                 {reached ? (
                   `currentLength=${count}`
@@ -225,13 +289,13 @@ export default function App() {
                             border border-solid border-gray-300 rounded-lg transition ease-in-out m-0 bg-white 
                             focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none
                             dark:border-zinc-600 dark:bg-zinc-700 dark:focus:bg-zinc-600 
-                            dark:focus:border-zinc-500 dark:focus:text-white shadow-lg"
+                            dark:focus:border-zinc-500 dark:focus:text-white focus:shadow-lg"
                 id="floatingInput"
                 placeholder="username"
                 onChange={(e) => {
                   e.preventDefault();
                   let targetValue = e.target.value;
-                  setValue(targetValue);
+                  setValue(targetValue.replace(/^[A-Za-z0-9]+/g, ""));
 
                   if (e.target.value.length > 39) {
                     setCount(e.target.value.length);
@@ -244,14 +308,20 @@ export default function App() {
                   }
                 }}
               />
-              <button
-                className="max-w-10 text-bold font-black text-center bg-gray-300 dark:bg-zinc-700/50 
-                          px-6 py-2 rounded-lg my-2 hover:shadow-lg transition ease-in-out shadow-black/10"
+              <input
+                className={`max-w-10 text-bold font-black text-center bg-gray-300 dark:bg-zinc-700/50 
+                  px-6 py-2 rounded-lg my-2 hover:shadow-lg transition ease-in-out shadow-black/10`}
                 type="submit"
+                onSubmit={() => {
+                  setUser(value);
+                  window.location.href = `?username=${user}`;
+                  alert("query submitted");
+                }}
+                placeholder={
+                  reached ? "maxLength=39" : disabled ? "disabled" : "submit"
+                }
                 disabled={disabled || reached}
-              >
-                {reached ? "maxLength=39" : disabled ? "disabled" : "submit"}
-              </button>
+              />
             </form>
           </div>
         )}
