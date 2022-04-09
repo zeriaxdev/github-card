@@ -128,7 +128,7 @@ const Github: React.FC<{
       .catch((err) => {
         console.log(err);
       });
-  }, [axios, user]);
+  }, [user]);
 
   return data ? (
     <div
