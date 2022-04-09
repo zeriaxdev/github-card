@@ -36,7 +36,7 @@ const DownloadBtn: React.FC<{
   return (
     <div className="mx-1 my-3">
       <button
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg
+        className="bg-gray-300 hover:bg-gray-400/50 text-gray-800 font-bold py-2 px-4 rounded-lg
                   inline-flex dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
         onClick={() => {
           htmlToImage
@@ -67,7 +67,7 @@ const DarkModeBtn: React.FC = () => {
   return (
     <div className="mx-1 my-3">
       <button
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg
+        className="bg-gray-300 hover:bg-gray-400/50 text-gray-800 font-bold py-2 px-4 rounded-lg
         inline-flex dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
         onClick={() => {
           setDarkMode(!darkMode);
@@ -128,7 +128,7 @@ const Github: React.FC<{
       .catch((err) => {
         console.log(err);
       });
-  }, [axios]);
+  }, [axios, user]);
 
   return data ? (
     <div
@@ -146,7 +146,8 @@ const Github: React.FC<{
             <div className="flex-grow-0 flex-shrink-0 w-[140.98px] h-[143.08px]">
               <img
                 src={data.avatar_url}
-                className="w-[137px] h-[137px] absolute left-[84.01px] top-[-0.5px] object-cover rounded-2xl"
+                className="w-[137px] h-[137px] absolute left-[84.01px] top-[-0.5px] object-cover rounded-2xl shadow-xl"
+                alt={user + ".png"}
               />
               <svg
                 width={27}
@@ -174,11 +175,11 @@ const Github: React.FC<{
                 {data.login}
               </a>
               <div>
-                <a className="self-stretch flex-shrink-0 w-[310px] text-[15px] text-center font-medium text-gray-500">
+                <p className="self-stretch flex-shrink-0 w-[310px] text-[15px] text-center font-medium text-gray-500">
                   {data.location
                     ? data.location
                     : "everywhere at the end of time"}
-                </a>
+                </p>
               </div>
             </div>
           </div>
@@ -197,9 +198,9 @@ const Github: React.FC<{
             </a>
           </div>
         ) : (
-          <a className="self-stretch flex-grow-0 flex-shrink-0 w-[310px] text-[37px] font-black text-center">
+          <p className="self-stretch flex-grow-0 flex-shrink-0 w-[310px] text-[37px] font-black text-center">
             {data.login}
-          </a>
+          </p>
         )}
         {data.type !== "User" ? (
           <p className="flex-grow-0 flex-shrink-0 text-[17px] font-medium text-center">
@@ -239,7 +240,7 @@ export default function App() {
     const params = new URLSearchParams(windowUrl);
 
     setUser(params.get("username"));
-  });
+  }, [setUser]);
 
   return (
     <div>
