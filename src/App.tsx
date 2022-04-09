@@ -239,6 +239,8 @@ export default function App() {
     const windowUrl = window.location.search;
     const params = new URLSearchParams(windowUrl);
 
+    document.title = `${user} - github card`;
+
     setUser(params.get("username"));
   }, [setUser]);
 
